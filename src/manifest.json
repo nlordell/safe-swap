@@ -1,0 +1,11 @@
+{
+  "short_name": "safe-swap",
+  "name": "Safe Swap",
+  "description": "The only swap app you'll ever need for your Safe.",
+  "iconPath": "",
+  "icons": [],
+  "start_url": ".",
+  "display": "",
+  "theme_color": "",
+  "background_color": ""
+}

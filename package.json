@@ -1,0 +1,21 @@
+{
+  "name": "safe-swap",
+  "private": true,
+  "scripts": {
+    "bundle": "node ./bundle.js",
+    "serve": "esbuild --serve --servedir=dist"
+  },
+  "dependencies": {
+    "@gnosis.pm/safe-apps-sdk": "^7.8.0",
+    "@walletconnect/client": "^1.8.0",
+    "@walletconnect/qrcode-modal": "^1.8.0",
+    "buffer": "^6.0.3",
+    "esbuild-svelte": "^0.7.3",
+    "ethers": "^5.7.2",
+    "lodash-es": "^4.17.21",
+    "walletconnect": "^1.7.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.16.12"
+  }
+}

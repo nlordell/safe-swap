@@ -1,0 +1,3 @@
+// Shims to work around WalletConnect issues...
+export const global = globalThis;
+export { Buffer } from "buffer";
