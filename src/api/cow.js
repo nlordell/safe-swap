@@ -108,11 +108,11 @@ export async function getLimitQuote({
 function isOrderPayload({ domain, types, primaryType }) {
   return primaryType === "Order" &&
     types.Order?.length === ORDER_TYPE.length &&
-    Object.entries(DOMAIN).every(([key, value]) => {
-      return domain[key] === value;
-    }) &&
+    domain.name === DOMAIN.name &&
+    domain.version === DOMAIN.version &&
+    ethers.utils.getAddress(domain.verifyingContract) === DOMAIN.verifyingContract &&
     ORDER_TYPE.every(({ name, type }, i) => {
-      const field = types.Order[i].name;
+      const field = types.Order[i];
       return name === field.name && type === field.type;
     });
 }
@@ -121,7 +121,16 @@ export function orderFromPayload({ domain, types, primaryType, message }) {
   if (!isOrderPayload({ domain, types, primaryType })) {
     return null;
   }
-  return message;
+
+  let validTo;
+  try {
+    validTo = parseInt(`${message.validTo}`);
+  } catch (err) {
+    console.warn(err);
+    return null;
+  }
+
+  return { ...message, validTo };
 }
 
 async function getOrder(chainId, uid) {
@@ -134,12 +143,12 @@ async function getOrder(chainId, uid) {
   }
 
   const order = await response.json();
-  return { order };
+  return order;
 }
 
 export async function placeOrder(from, chainId, order) {
   try {
-    const hash = ethers.utils._TypedDataEncoder.encode(
+    const hash = ethers.utils._TypedDataEncoder.hash(
       {
         ...DOMAIN,
         chainId,
@@ -151,7 +160,7 @@ export async function placeOrder(from, chainId, order) {
     );
     const uid = ethers.utils.solidityPack(
       ["bytes32", "address", "uint32"],
-      [hash, from, message.validTo],
+      [hash, from, order.validTo],
     );
 
     return await getOrder(chainId, uid);

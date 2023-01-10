@@ -11,11 +11,12 @@
     const messages = await safe.messages();
     const entries = messages
       .map(({ message, messageHash, preparedSignature }) => {
-        const order = orderFromPayload(account.address, message);
+        const order = orderFromPayload(message);
         return order != null
           ? {
             order: {
               ...order,
+              from: account.address,
               signingScheme: "eip1271",
               signature: preparedSignature,
             },
@@ -51,10 +52,11 @@
   }
 
   let interval
-  onMount(() => {
+  onMount(async () => {
+    entries = await updateHistory();
     interval = setInterval(async () => {
       entries = await updateHistory();
-    }, 5000);
+    }, 10000);
   });
   onDestroy(() => clearInterval(interval));
 </script>
