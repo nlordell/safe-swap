@@ -1,4 +1,4 @@
-const esbuild = require("esbuild")
+const esbuild = require("esbuild");
 const esbuildSvelte = require("esbuild-svelte");
 const fs = require("fs").promises;
 
@@ -12,10 +12,7 @@ async function main() {
     logLevel: "info",
   });
 
-  for (const file of [
-    "index.html",
-    "manifest.json",
-  ]) {
+  for (const file of ["manifest.json"]) {
     await fs.copyFile(`src/${file}`, `dist/${file}`);
   }
 }
