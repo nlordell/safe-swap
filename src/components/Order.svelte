@@ -11,11 +11,12 @@
   let sellToken = ethers.constants.AddressZero;
   let buyToken = ethers.constants.AddressZero;
   let sellAmount = "0";
+  let receiver = ethers.constants.AddressZero;
 
   let quote = null;
   $: {
     quote = null;
-    getQuote({ sellToken, buyToken, sellAmount });
+    getQuote({ sellToken, buyToken, sellAmount, receiver });
   };
 
   let buyAmount = "...";
@@ -31,7 +32,7 @@
   };
 
   const getQuote = debounce(
-    async ({ sellToken, buyToken, sellAmount }) => {
+    async ({ sellToken, buyToken, sellAmount, receiver }) => {
       try{
         quote = await getLimitQuote({
           from: account.address,
@@ -39,6 +40,7 @@
           sellToken,
           buyToken,
           sellAmount: parseUnits(sellToken, sellAmount),
+          receiver,
          });
       } catch (err) {
         console.warn(err);
@@ -126,6 +128,11 @@
   <div class="group">
     <label for="buyAmount">Buy Amount</label>
     <input type="text" id="buyAmount" value={buyAmount} disabled=true>
+  </div>
+
+  <div class="group">
+    <label for="receiver">Receiver</label>
+    <input type="text" id="receiver" bind:value={receiver}>
   </div>
 
   <div class="actions">
