@@ -41,25 +41,24 @@ export async function getLimitQuote({
   sellToken,
   buyToken,
   sellAmount,
+  receiver,
 }) {
   const network = getNetwork(chainId);
-  const response = await fetch(
-    `https://api.cow.fi/${network}/api/v1/quote`,
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        from: ethers.utils.getAddress(from),
-        sellToken: ethers.utils.getAddress(sellToken),
-        buyToken: ethers.utils.getAddress(buyToken),
-        kind: "sell",
-        appData: ethers.utils.id("Safe Swap"),
-        sellAmountBeforeFee: `${BigInt(sellAmount)}`,
-      }),
+  const response = await fetch(`https://api.cow.fi/${network}/api/v1/quote`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      from: ethers.utils.getAddress(from),
+      receiver: ethers.utils.getAddress(receiver),
+      sellToken: ethers.utils.getAddress(sellToken),
+      buyToken: ethers.utils.getAddress(buyToken),
+      kind: "sell",
+      appData: ethers.utils.id("Safe Swap"),
+      sellAmountBeforeFee: `${BigInt(sellAmount)}`,
+    }),
+  });
   if (!response.ok) {
     throw new Error(parseError(await response.text()));
   }
@@ -69,10 +68,10 @@ export async function getLimitQuote({
   // Adjust the final buy amount to:
   // 1. account for some slippage tolerance
   // 2. allow for 2x fees of additional surplus
-  const adjustedSellAmount = (BigInt(quote.sellAmount) * 101n / 100n) +
-    (BigInt(quote.feeAmount) * 2n);
-  const buyAmount = BigInt(quote.buyAmount) * BigInt(quote.sellAmount) /
-    adjustedSellAmount;
+  const adjustedSellAmount =
+    (BigInt(quote.sellAmount) * 101n) / 100n + BigInt(quote.feeAmount) * 2n;
+  const buyAmount =
+    (BigInt(quote.buyAmount) * BigInt(quote.sellAmount)) / adjustedSellAmount;
 
   delete quote.signingScheme;
   return {
@@ -87,7 +86,7 @@ export async function getLimitQuote({
       {
         sellToken: quote.sellToken,
         buyToken: quote.buyToken,
-        receiver: ethers.constants.AddressZero,
+        receiver: quote.receiver,
         sellAmount: `${BigInt(sellAmount)}`,
         buyAmount: `${buyAmount}`,
         validTo: ~~(Date.now() / 1000) + ONE_DAY,
@@ -97,7 +96,7 @@ export async function getLimitQuote({
         partiallyFillable: quote.partiallyFillable,
         sellTokenBalance: quote.sellTokenBalance,
         buyTokenBalance: quote.buyTokenBalance,
-      },
+      }
     ),
     quoteId: id,
     estimatedBuyAmount: quote.buyAmount,
@@ -106,15 +105,18 @@ export async function getLimitQuote({
 }
 
 function isOrderPayload({ domain, types, primaryType }) {
-  return primaryType === "Order" &&
+  return (
+    primaryType === "Order" &&
     types.Order?.length === ORDER_TYPE.length &&
     domain.name === DOMAIN.name &&
     domain.version === DOMAIN.version &&
-    ethers.utils.getAddress(domain.verifyingContract) === DOMAIN.verifyingContract &&
+    ethers.utils.getAddress(domain.verifyingContract) ===
+      DOMAIN.verifyingContract &&
     ORDER_TYPE.every(({ name, type }, i) => {
       const field = types.Order[i];
       return name === field.name && type === field.type;
-    });
+    })
+  );
 }
 
 export function orderFromPayload({ domain, types, primaryType, message }) {
@@ -136,7 +138,7 @@ export function orderFromPayload({ domain, types, primaryType, message }) {
 async function getOrder(chainId, uid) {
   const network = await getNetwork(chainId);
   const response = await fetch(
-    `https://api.cow.fi/${network}/api/v1/orders/${uid}`,
+    `https://api.cow.fi/${network}/api/v1/orders/${uid}`
   );
   if (!response.ok) {
     throw new Error(parseError(await response.text()));
@@ -156,11 +158,11 @@ export async function placeOrder(from, chainId, order) {
       {
         Order: ORDER_TYPE,
       },
-      order,
+      order
     );
     const uid = ethers.utils.solidityPack(
       ["bytes32", "address", "uint32"],
-      [hash, from, order.validTo],
+      [hash, from, order.validTo]
     );
 
     return await getOrder(chainId, uid);
@@ -169,19 +171,16 @@ export async function placeOrder(from, chainId, order) {
   }
 
   const network = getNetwork(chainId);
-  const response = await fetch(
-    `https://api.cow.fi/${network}/api/v1/orders`,
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        from: ethers.utils.getAddress(from),
-        ...order,
-      }),
+  const response = await fetch(`https://api.cow.fi/${network}/api/v1/orders`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      from: ethers.utils.getAddress(from),
+      ...order,
+    }),
+  });
   if (!response.ok) {
     throw new Error(parseError(await response.text()));
   }

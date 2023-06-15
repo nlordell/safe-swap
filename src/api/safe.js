@@ -1,4 +1,4 @@
-import SafeAppsSDK from "@gnosis.pm/safe-apps-sdk";
+import SafeAppsSDK from "@safe-global/safe-apps-sdk";
 
 const sdk = new SafeAppsSDK({
   allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/, /5afe.dev$/],
