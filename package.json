@@ -13,7 +13,7 @@
     "esbuild-svelte": "^0.7.3",
     "ethers": "^5.7.2",
     "lodash-es": "^4.17.21",
-    "walletconnect": "^1.7.8"
+    "walletconnect": "^0.7.28"
   },
   "devDependencies": {
     "esbuild": "^0.16.12"
